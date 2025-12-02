@@ -1,0 +1,48 @@
+# Disable directory browsing
+Options -Indexes
+
+# Force HTTPS
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Protect system files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow access to .well-known for SSL validation if needed
+<FilesMatch "^\.well-known">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
+# Security Headers
+<IfModule mod_headers.c>
+    # Protect against MIME-type sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Prevent clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Enable XSS filtering
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Control referrer information
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Content Security Policy (CSP)
+    # Allows scripts/styles from self, fonts from Google, images from Unsplash
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://images.unsplash.com;"
+
+    # Strict-Transport-Security (HSTS)
+    # Enforce HTTPS for 1 year (31536000 seconds)
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# Error Pages (Optional - redirect to home for now)
+ErrorDocument 403 /index.html
+ErrorDocument 404 /index.html
